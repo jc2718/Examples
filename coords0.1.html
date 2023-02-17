@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      background: yellow;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.118.3/build/three.js"></script>
+  <script>
+    // Set up the Three.js scene
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    let renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    // Add the 3D coordinate axes to the scene
+    let xAxis = new THREE.Vector3( 1, 0, 0 );
+    let yAxis = new THREE.Vector3( 0, 1, 0 );
+    let zAxis = new THREE.Vector3( 0, 0, 1 );
+    let xMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+    let yMaterial = new THREE.LineBasicMaterial( { color: 0x00ff00 } );
+    let zMaterial = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+    let xGeometry = new THREE.Geometry();
+    xGeometry.vertices.push( new THREE.Vector3( -10, 0, 0 ), new THREE.Vector3( 10, 0, 0 ) );
+    let yGeometry = new THREE.Geometry();
+    yGeometry.vertices.push( new THREE.Vector3( 0, -10, 0 ), new THREE.Vector3( 0, 10, 0 ) );
+    let zGeometry = new THREE.Geometry();
+    zGeometry.vertices.push( new THREE.Vector3( 0, 0, -10 ), new THREE.Vector3( 0, 0, 10 ) );
+    let xAxisLine = new THREE.Line( xGeometry, xMaterial );
+    let yAxisLine = new THREE.Line( yGeometry, yMaterial );
+    let zAxisLine = new THREE.Line( zGeometry, zMaterial );
+    scene.add( xAxisLine );
+    scene.add( yAxisLine );
+    scene.add( zAxisLine );
+
+    // Set up the mouse-based rotation controls
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let rotation = { x: 0, y: 0 };
+    renderer.domElement.addEventListener( 'mousedown', function( event ) {
+      isDragging = true;
+      previousMousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+    });
+    renderer.domElement.addEventListener( 'mouseup', function() {
+      isDragging = false;
+    });
+    renderer.

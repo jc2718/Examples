@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lorenz System Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.101.1/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/dat.gui"></script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+  
+  
+    <script>
+      // Create the scene, camera, and renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 1, 500);
+      camera.position.set(-29, 7, 50);
+
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+       
+      const axesHelper = new THREE.AxesHelper(5);
+      scene.add(axesHelper);
+
+      const fixedpoint1 = new THREE.Mesh(new THREE.SphereGeometry(.5), new THREE.MeshBasicMaterial({ color: 0x990000 }));
+      const fixedpoint2 = new THREE.Mesh(new THREE.SphereGeometry(.5), new THREE.MeshBasicMaterial({ color: 0x990000 }));
+      scene.add(fixedpoint1); scene.add(fixedpoint2);
+      
+      const gui = new dat.GUI();
+      const params = { rho: 28, };//later: add params for beta, sigma to make those tunable as well
+      const controller = gui.add(params, "rho", 1, 50).step(1);  
+
+      // Set up mouse controls to rotate the camera
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.25;
+      controls.screenSpacePanning = false;
+      controls.minDistance = 1;
+      controls.maxDistance = 100;
+      controls.maxPolarAngle = Math.PI;      
+
+    // Assign functions, init variables
+    const initial = 40;    
+    let x = initial;  
+    let y = initial;  
+    let z = initial; 
+    
+    sigma = 10;
+    let rho = params.rho;
+    beta = 8/3;
+
+  const fixedpointFunction = (beta, rho) => Math.sqrt(beta * (rho - 1));
+    let fp0 = fixedpointFunction(beta,rho);
+
+    fixedpoint1.position.set(fp0, fp0, rho - 1);
+    fixedpoint2.position.set(-fp0, -fp0, rho - 1);
+
+    dt = 0.001;
+
+  function updateSpheresPosition() {
+    fp0 = fixedpointFunction(beta,rho);
+
+    fixedpoint1.position.set(fp0, fp0, rho - 1);
+    fixedpoint2.position.set(-fp0, -fp0, rho - 1);
+     }  
+      
+    // Listen for changes to rho and update spheres' positions
+   controller.onChange((value) => { rho = params.rho; updateSpheresPosition(); })
+
+    const dxFunction = (y,x) => sigma * (y - x);
+    const dyFunction = (z,y) => x * (rho - z) - y;
+    const dzFunction = (x,y,z) => x * y - beta * z;
+
+    let curvePoints = [];
+    const oldCurves = [];
+    const maxtail = 10000;
+
+    
+
+
+    // Add an animation loop  
+    const animate = function () {
+    
+    requestAnimationFrame(animate);
+    
+      // update rho based on the slider value
+      //rho = params.rho;     
+      
+      x += dxFunction(y,x) * dt;
+      y += dyFunction(z,y) * dt;
+      z += dzFunction(x,y,z) * dt;
+      curvePoints.push(new THREE.Vector3(x, y, z));
+      if (curvePoints.length > maxtail){const tailpoint = curvePoints.shift();   }
+  
+
+      const curveGeometry = new THREE.BufferGeometry().setFromPoints(curvePoints);
+      const curveMaterial = new THREE.LineBasicMaterial({ color: 0xB4B801 });
+      const curve = new THREE.Line(curveGeometry, curveMaterial);
+
+      scene.add(curve);
+      renderer.render(scene, camera);
+
+      // add the new curve to the array of old curves
+      oldCurves.push(curve);
+
+      // remove old curves from the scene
+            if (oldCurves.length > 10) {
+              const curveToRemove = oldCurves.shift();
+              scene.remove(curveToRemove);
+              curveToRemove.geometry.dispose();
+              curveToRemove.material.dispose();
+              }
+        
+      };
+      animate();
+
+
+
+    </script>
+  </body>
+</html>
